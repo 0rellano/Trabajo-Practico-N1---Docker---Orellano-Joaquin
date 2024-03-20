@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Servicio para la base de datos MySQL
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'contra'
+      MYSQL_ROOT_PASSWORD: 'contra123'
+    volumes:
+      - mysql_data:/var/lib/mysql  # Monta un volumen para persistir los datos de la base de datos
+    networks:
+      - itsv
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: db  # Nombre del host de la base de datos MySQL
+      PMA_PORT: 3306  # Puerto del servidor MySQL
+      MYSQL_ROOT_PASSWORD: 'contra123'  
+    ports:
+      - "8080:80"  # Mapea el puerto 8080 de tu host al puerto 80 del contenedor
+    networks:
+      - itsv  # Utiliza la red personalizada "mynetwork"
+  
+  # Servicio para la aplicación Django
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"  # Mapea el puerto 8000 de tu host al puerto 8000 del contenedor
+    volumes:
+      - .:/app  # Monta el directorio actual como un volumen en el contenedor
+    depends_on:
+      - db  # Dependencia del servicio de la base de datos
+    networks:
+      - itsv
+
+
+
+volumes:
+  mysql_data:  # Define el volumen para persistir los datos de la base de datos MySQL
+
+networks:
+  itsv:
+    driver: bridge
